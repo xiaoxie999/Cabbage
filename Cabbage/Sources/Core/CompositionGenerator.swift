@@ -7,6 +7,8 @@
 //
 
 import AVFoundation
+import UIKit
+import AVKit
 
 public class CompositionGenerator {
     
@@ -20,7 +22,7 @@ public class CompositionGenerator {
     }
     
     private var composition: AVComposition?
-    private var videoComposition: AVVideoComposition?
+    private var videoComposition: AVMutableVideoComposition?
     private var audioMix: AVAudioMix?
     
     private var needRebuildComposition: Bool = true
@@ -47,10 +49,17 @@ public class CompositionGenerator {
         return imageGenerator
     }
     
-    public func buildExportSession(presetName: String, fps: CMTimeScale = 30) -> AVAssetExportSession? {
+    public func buildExportSession(presetName: String, fps: CMTimeScale = 30, animationTool: AVVideoCompositionCoreAnimationTool? = nil) -> AVAssetExportSession? {
         let composition = buildComposition()
         let exportSession = AVAssetExportSession.init(asset: composition, presetName: presetName)
-        exportSession?.videoComposition = buildVideoComposition(fps: fps)
+        if animationTool != nil {
+            needRebuildVideoComposition = true
+        }
+        let videoComposition = buildVideoComposition(fps: fps)
+        if let animationTool {
+            videoComposition?.animationTool = animationTool
+        }
+        exportSession?.videoComposition = videoComposition
         exportSession?.audioMix = buildAudioMix()
         exportSession?.outputURL = {
             let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last!
@@ -192,7 +201,7 @@ public class CompositionGenerator {
         return composition
     }
     
-    public func buildVideoComposition(fps: CMTimeScale = 30) -> AVVideoComposition? {
+    public func buildVideoComposition(fps: CMTimeScale = 30) -> AVMutableVideoComposition? {
         if let videoComposition = self.videoComposition, !needRebuildVideoComposition {
             return videoComposition
         }
@@ -438,3 +447,185 @@ extension CMTimeRange {
 }
 
 
+extension CompositionGenerator {
+    
+    /*
+    private func makeAnimationTool2() -> AVVideoCompositionCoreAnimationTool? {
+//        guard let animationLayer = makeTextAnimationLayer() else {
+//            return nil
+//        }
+//        
+//        let parentLayer = CALayer()
+//        parentLayer.isGeometryFlipped = true
+//        let videoLayer = CALayer()
+//        parentLayer.frame = CGRect(origin: CGPoint.zero, size: self.timeline.renderSize)
+//        videoLayer.frame = CGRect(origin: CGPoint.zero, size: self.timeline.renderSize)
+//        parentLayer.addSublayer(videoLayer)
+//        parentLayer.addSublayer(animationLayer)
+//        
+//        let animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
+//        return animationTool
+        
+        let lyricLayer = LyricTextAnimation(frame: CGRect(origin: .zero, size: self.timeline.renderSize), type: .colorChange)
+        return lyricLayer.makeAnimationTool(self.timeline.renderSize)
+    }
+     */
+        
+    /*
+    func makeTextAnimationLayer() -> TextOpacityAnimationLayer? {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 120),
+            .foregroundColor: UIColor.white,
+            .paragraphStyle: paragraphStyle
+        ]
+        let attributedString = NSAttributedString(string: "Think Big, Start Small, Learn Fast.", attributes: attributes)
+        let size = attributedString.boundingRect(with: CGSize(width: 800, height: 720),
+                                                 options: .usesLineFragmentOrigin,
+                                                 context: nil).size
+        let layer = TextOpacityAnimationLayer()
+        layer.attributedText = attributedString
+        layer.position = CGPoint(x: 360, y: 540)
+        layer.bounds = CGRect(origin: CGPoint.zero, size: size)
+
+        return layer
+    }
+    
+    public class TextOpacityAnimationLayer: TextAnimationLayer {
+        override func addAnimations(to layers: [CATextLayer]) {
+            var beginTime = AVCoreAnimationBeginTimeAtZero
+            let beginTimeInterval = 0.125
+            
+            for layer in layers {
+                let animationGroup = CAAnimationGroup()
+                animationGroup.duration = 15.0
+                animationGroup.beginTime = AVCoreAnimationBeginTimeAtZero
+                animationGroup.fillMode = .both
+                animationGroup.isRemovedOnCompletion = false
+
+                let opacityAnimation = CABasicAnimation(keyPath: "opacity")
+                opacityAnimation.fromValue = 0.0
+                opacityAnimation.toValue = 1.0
+                opacityAnimation.duration = 0.125
+                opacityAnimation.beginTime = beginTime
+                opacityAnimation.fillMode = .both
+
+                let scaleAnimation = CABasicAnimation(keyPath: "transform.scale")
+                scaleAnimation.fromValue = 0.0
+                scaleAnimation.toValue = 1.0
+                scaleAnimation.duration = 0.125
+                scaleAnimation.beginTime = beginTime
+                scaleAnimation.fillMode = .both
+                
+                animationGroup.animations = [opacityAnimation, scaleAnimation]
+                layer.add(animationGroup, forKey: "animationGroup")
+
+                beginTime += beginTimeInterval
+            }
+        }
+    }
+    
+    public class TextAnimationLayer: CALayer, NSLayoutManagerDelegate {
+        private let textStorage: NSTextStorage = NSTextStorage()
+        private let layoutManager: NSLayoutManager = NSLayoutManager()
+        private let textContainer: NSTextContainer = NSTextContainer()
+        private var textSize: CGSize = CGSize.zero
+        private var animationLayers: [CATextLayer] = []
+
+        public var attributedText: NSAttributedString {
+            get {
+                return textStorage as NSAttributedString
+            }
+            set {
+                textStorage.setAttributedString(newValue)
+            }
+        }
+        
+        public override var bounds: CGRect {
+            get {
+                super.bounds
+            }
+            set {
+                textContainer.size = newValue.size
+                super.bounds = newValue
+            }
+        }
+
+        public override init() {
+            super.init()
+            setupTextkit()
+        }
+        
+        public override init(layer: Any) {
+            super.init(layer: layer)
+            setupTextkit()
+        }
+        
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+        
+        // MARK: - Public
+        
+        /// Add animations to the layers, subclasses need to override this method to customize animation
+        /// - Parameter layers: Split letters or words corresponding layers
+        func addAnimations(to layers: [CATextLayer]) {
+            let animationGroup = CAAnimationGroup()
+            animationGroup.duration = 15.0
+            animationGroup.beginTime = AVCoreAnimationBeginTimeAtZero
+            animationGroup.fillMode = .both
+            animationGroup.isRemovedOnCompletion = false
+            self.add(animationGroup, forKey: "animationGroup")
+        }
+        
+        // MARK: - Private
+        private func setupTextkit() {
+            textStorage.addLayoutManager(layoutManager)
+            layoutManager.addTextContainer(textContainer)
+            layoutManager.delegate = self
+            textContainer.size = CGSize.zero
+        }
+
+        private func updateAnimationLayers() {
+            if textContainer.size.equalTo(CGSize.zero) || attributedText.length == 0 {
+                return
+            }
+
+            // Remove old animation layers
+            for layer in animationLayers {
+                layer.removeAllAnimations()
+                layer.removeFromSuperlayer()
+            }
+            animationLayers.removeAll()
+            self.removeAllAnimations()
+            
+            // Split letters or words to generate corresponding layers
+            let string = attributedText.string
+            string.enumerateSubstrings(in: string.startIndex..<string.endIndex, options: .byComposedCharacterSequences) { [weak self] (subString, substringRange, _, _) in
+                guard let self = self else { return }
+                
+                let glyphRange = NSRange(substringRange, in: string)
+                let textRect = self.layoutManager.boundingRect(forGlyphRange: glyphRange, in: self.textContainer)
+                let textLayer = CATextLayer()
+                textLayer.frame = textRect
+                textLayer.string = self.attributedText.attributedSubstring(from: glyphRange)
+                self.animationLayers.append(textLayer)
+                self.addSublayer(textLayer)
+            }
+            
+            // Add animations to the layers
+            addAnimations(to: animationLayers)
+        }
+        
+        // MARK: - NSLayoutManagerDelegate
+        public func layoutManager(_ layoutManager: NSLayoutManager, didCompleteLayoutFor textContainer: NSTextContainer?, atEnd layoutFinishedFlag: Bool) {
+            if textContainer == nil {
+                return
+            }
+            
+            updateAnimationLayers()
+        }
+    }
+     */
+}

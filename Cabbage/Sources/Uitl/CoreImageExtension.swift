@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreImage
+import UIKit
 
 extension CIImage {
     
@@ -21,5 +22,30 @@ extension CIImage {
             return outputImage
         }
         return self
+    }
+    
+    func apply(blendWithMask: URL) -> CIImage {
+        let filter = CIFilter(name: "CIBlendWithAlphaMask")
+        filter?.setDefaults()
+        
+        // set the background image
+        filter?.setValue(self, forKey: kCIInputImageKey)
+        
+        // set the mask image
+        let bkgInput = CIImage(contentsOf: blendWithMask)?.scaleFillSize(to: extent)
+        filter?.setValue(bkgInput, forKey: kCIInputMaskImageKey)
+
+        if let outputImage = filter?.outputImage {
+            return outputImage
+        }
+        return self
+    }
+    
+    func apply(blendWithMask: CIImage, bgImage: CIImage) -> CIImage? {
+        let blendFilter = CIFilter.blendWithMask()
+        blendFilter.inputImage = self
+        blendFilter.backgroundImage = bgImage
+        blendFilter.maskImage = blendWithMask
+        return blendFilter.outputImage ?? self
     }
 }

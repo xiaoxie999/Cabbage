@@ -117,8 +117,14 @@ public extension CIImage {
         return transformed(by: transform).cropped(to: newFrame)
     }
     
-    func scaleSize(to: CGRect) -> CIImage {
+    func scaleFitSize(to: CGRect) -> CIImage {
         let newFrame = extent.aspectFit(in: to)
+        let transform = CGAffineTransform.transform(by: extent, aspectFillRect: newFrame)
+        return transformed(by: transform).cropped(to: newFrame)
+    }
+    
+    func scaleFillSize(to: CGRect) -> CIImage {
+        let newFrame = extent.aspectFill(in: to)
         let transform = CGAffineTransform.transform(by: extent, aspectFillRect: newFrame)
         return transformed(by: transform).cropped(to: newFrame)
     }

@@ -7,9 +7,10 @@
 
 import Foundation
 
-public enum ResourceType {
+public enum ResourceType: String {
     case gif        // gif动画
     case trackItem  // 视频
     case subtitle   // 字幕
     case text       // 文字、贴图
+    case overlayVideo  // 视频浮层
 }

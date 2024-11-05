@@ -12,7 +12,7 @@ import CoreImage
 open class VideoCompositionInstruction: NSObject, AVVideoCompositionInstructionProtocol {
     
     open var timeRange: CMTimeRange = CMTimeRange()
-    open var enablePostProcessing: Bool = false
+    open var enablePostProcessing: Bool = true
     open var containsTweening: Bool = false
     open var requiredSourceTrackIDs: [NSValue]?
     open var passthroughTrackID: CMPersistentTrackID = 0
@@ -31,7 +31,7 @@ open class VideoCompositionInstruction: NSObject, AVVideoCompositionInstructionP
         
         requiredSourceTrackIDs = [NSValue]()
         containsTweening = false
-        enablePostProcessing = false
+        enablePostProcessing = true
     }
     
     public init(theSourceTrackIDs: [NSValue], forTimeRange theTimeRange: CMTimeRange) {
@@ -42,7 +42,7 @@ open class VideoCompositionInstruction: NSObject, AVVideoCompositionInstructionP
         
         passthroughTrackID = kCMPersistentTrackID_Invalid
         containsTweening = true
-        enablePostProcessing = false
+        enablePostProcessing = true
     }
     
     open func apply(request: AVAsynchronousVideoCompositionRequest) -> CIImage? {
