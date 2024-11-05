@@ -41,6 +41,7 @@ extension CIImage {
         return self
     }
     
+    /*
     func apply(blendWithMask: CIImage, bgImage: CIImage) -> CIImage? {
         let blendFilter = CIFilter.blendWithMask()
         blendFilter.inputImage = self
@@ -48,4 +49,5 @@ extension CIImage {
         blendFilter.maskImage = blendWithMask
         return blendFilter.outputImage ?? self
     }
+     */
 }

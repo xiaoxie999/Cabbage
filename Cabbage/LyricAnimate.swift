@@ -168,7 +168,7 @@ class LyricTextAnimation: CALayer {
     
     func creatTextLayer(text: String) -> CATextLayer {
         let attributedText = NSMutableAttributedString(string: text)
-        attributedText.addAttributes(attrs(color: UIColor(named: "rw-green")!), range: NSRange(location: 0, length: (text as NSString).length))
+        attributedText.addAttributes(attrs(color: UIColor.green), range: NSRange(location: 0, length: (text as NSString).length))
         
         let textLayer = CATextLayer()
         textLayer.string = attributedText
