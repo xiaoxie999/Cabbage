@@ -88,10 +88,6 @@ public extension ImageEffect {
 }
  */
 
-public enum MJVideoSplitType: String {
-    case horizontal, vertical
-}
-
 public extension CIImage {
     /// 裁切尺寸
     func cropSize(withHorizontalPadding value: Float) -> CIImage? {
@@ -146,8 +142,9 @@ public extension CIImage {
                 bgImage = outputImage
             }
                         
-            /// 前景图
-            let frontImage = scaleSize(withHorizontalPadding: horizontalPadding, frame: frame)
+            /// 前景图，裁切黑边
+            var frontImage = cropSize(withHorizontalPadding: 2)
+            frontImage = frontImage?.scaleSize(withHorizontalPadding: horizontalPadding, frame: frame)
             
             // 图层叠加
             let compFilter = CIFilter(name: "CISourceOverCompositing")
@@ -159,7 +156,7 @@ public extension CIImage {
     }
     
     /// splitTwoImage
-    func splitTwoImage(frame: CGRect, direction: MJVideoSplitType = .horizontal, filters: [CIFilter?] = []) -> CIImage? {
+    func splitTwoImage(frame: CGRect, direction: VideoConfigOtherEffect.VideoSplitType = .horizontal, filters: [CIFilter?] = []) -> CIImage? {
         var (image1, image2) = splitImage(with: direction, frame: frame)
         
         /// 添加滤镜
@@ -180,7 +177,7 @@ public extension CIImage {
         return compFilter?.outputImage
     }
     
-    private func splitImage(with direction: MJVideoSplitType, frame: CGRect) -> (CIImage, CIImage) {
+    private func splitImage(with direction: VideoConfigOtherEffect.VideoSplitType, frame: CGRect) -> (CIImage, CIImage) {
         var image1: CIImage
         var image2: CIImage
         switch direction {

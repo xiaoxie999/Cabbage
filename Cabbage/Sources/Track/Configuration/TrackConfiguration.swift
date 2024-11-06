@@ -22,6 +22,60 @@ public protocol VideoConfigurationProtocol: NSCopying {
     func applyEffect(to sourceImage: CIImage, info: VideoConfigurationEffectInfo) -> CIImage
 }
 
+public class VideoConfigOtherEffect {
+    
+    weak var videoConfig: VideoConfiguration?
+    
+    public enum VideoSplitType: String {
+        case horizontal, vertical
+    }
+    
+    /// 分段
+    public var split: VideoSplitType? = nil
+
+    /// 滤镜
+    // 调色
+    public var color: Bool = false {
+        didSet {
+            if color {
+                filters.append(CIImage.randomBuiltinFilter())
+            }
+        }
+    }
+    // 修改角度
+    public var angle: Bool = false {
+        didSet {
+            if angle {
+                filters.append(CIImage.angleFilter())
+            }
+        }
+    }
+    private(set) var filters: [CIFilter?] = []
+    
+    /// 画中画效果(高斯模糊)
+    public var pipOffset: Double = 0.0
+    
+    /// 镜像
+    public var mirror: Bool = false {
+        didSet {
+            if mirror {
+                videoConfig?.transform = CGAffineTransform(scaleX: -1.0, y: 1.0)
+            }
+        }
+    }
+    
+    /// 裁切
+    public var cropX: Double = 0.0
+    
+    func hasEffect() -> Bool {
+        split != nil || color || angle || pipOffset > 0 || mirror || cropX > 0
+    }
+    
+    init(_ videoConfig: VideoConfiguration?) {
+        self.videoConfig = videoConfig
+    }
+}
+
 public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     
     public static func createDefaultConfiguration() -> VideoConfiguration {
@@ -32,7 +86,6 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
         case aspectFit
         case aspectFill
         case custom
-        case cropSize(Float)
     }
     public var contentMode: BaseContentMode = .aspectFit
     /// Default is renderSize
@@ -41,14 +94,7 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     public var opacity: Float = 1.0
     public var configurations: [VideoConfigurationProtocol] = []
     
-    /// 是否开启高斯模糊
-    public var enableBlur: Bool = false
-    /// 随机切分
-    public var split: MJVideoSplitType? = nil
-    /// 滤镜
-    public var filters: [CIFilter?] = []
-    /// 画中画效果
-    public var pipOffset: Double = 0.0
+    public lazy var otherEffect = VideoConfigOtherEffect(self)
     
     public required override init() {
         super.init()
@@ -87,25 +133,50 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
             finalImage = finalImage.transformed(by: transform).cropped(to: frame)
             
             if info.type == .trackItem {
-                if let split {
-                    if let image = finalImage.splitTwoImage(frame: frame, direction: split, filters: filters) {
-                        finalImage = image
-                    }
-                }
-                
-                /// 添加滤镜
-                if !filters.isEmpty {
-                    filters.forEach { filter in
-                        if let filter, let output = finalImage.apply(filter) {
-                            finalImage = output
+                if otherEffect.hasEffect() {
+                    if otherEffect.cropX > 0 {
+                        if let cropImage = finalImage.cropSize(withHorizontalPadding: Float(otherEffect.cropX)) {
+                            let transform = CGAffineTransform.transform(by: cropImage.extent, aspectFitInRect: frame)
+                            finalImage = cropImage.transformed(by: transform).cropped(to: frame)
                         }
                     }
-                }
-                
-                if pipOffset > 0.0 {
-                    if let blurImage = finalImage.gaussianBlur(frame: frame, horizontalPadding: pipOffset) {
-                        finalImage = blurImage
+                    
+                    /// 添加滤镜
+                    if !otherEffect.filters.isEmpty {
+                        otherEffect.filters.forEach { filter in
+                            if let filter, let output = finalImage.apply(filter) {
+                                finalImage = output
+                            }
+                        }
                     }
+                    
+                    /// 分段
+                    if let split = otherEffect.split {
+                        if let image = finalImage.splitTwoImage(frame: frame, direction: split) {
+                            finalImage = image
+                        }
+                    }
+                    
+                    /// 画中画
+                    if otherEffect.pipOffset > 0.0 {
+                        if let blurImage = finalImage.gaussianBlur(frame: frame, horizontalPadding: otherEffect.pipOffset) {
+                            finalImage = blurImage
+                        }
+                    }
+                    
+                    /*
+                    /// 视频非全屏
+                    if frame.height - finalImage.extent.aspectFit(in: frame).height > 20 {
+                        /// 添加背景模糊效果
+                        if enableBlur {
+                            if let blurImage = finalImage.gaussianBlur(frame: frame) {
+                                finalImage = blurImage
+                            }
+                        }
+                    }
+                    /// 视频全屏
+                    else {}
+                     */
                 }
             }
             break
@@ -118,50 +189,6 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
             let translateTransform = CGAffineTransform.init(translationX: frame.origin.x, y: frame.origin.y)
             transform = transform.concatenating(translateTransform)
             finalImage = finalImage.transformed(by: transform)
-            break
-        case .cropSize(let padding):
-            ///debugPrint("cropSize padding: \(padding)")
-            if let cropImage = finalImage.cropSize(withHorizontalPadding: padding) {
-                let transform = CGAffineTransform.transform(by: cropImage.extent, aspectFitInRect: frame)
-                finalImage = cropImage.transformed(by: transform).cropped(to: frame)
-            }
-
-            if info.type == .trackItem {
-                if let split {
-                    if let image = finalImage.splitTwoImage(frame: frame, direction: split, filters: filters) {
-                        finalImage = image
-                    }
-                }
-                
-                /// 添加滤镜
-                if !filters.isEmpty {
-                    filters.forEach { filter in
-                        if let filter, let output = finalImage.apply(filter) {
-                            finalImage = output
-                        }
-                    }
-                }
-                
-                if pipOffset > 0.0 {
-                    if let blurImage = finalImage.gaussianBlur(frame: frame, horizontalPadding: pipOffset) {
-                        finalImage = blurImage
-                    }
-                }
-                
-                /*
-                /// 视频非全屏
-                if frame.height - finalImage.extent.aspectFit(in: frame).height > 20 {
-                    /// 添加背景模糊效果
-                    if enableBlur {
-                        if let blurImage = finalImage.gaussianBlur(frame: frame) {
-                            finalImage = blurImage
-                        }
-                    }
-                }
-                /// 视频全屏
-                else {}
-                 */
-            }
             break
         }
         
