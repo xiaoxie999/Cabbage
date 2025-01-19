@@ -9,6 +9,7 @@
 import AVFoundation
 import CoreImage
 import UIKit
+//import MetalPetal
 
 public struct VideoConfigurationEffectInfo {
     
@@ -26,8 +27,22 @@ public class VideoConfigOtherEffect {
     
     weak var videoConfig: VideoConfiguration?
     
-    public enum VideoSplitType: String {
-        case horizontal, vertical
+    public enum VideoSplitCount: Int {
+        case two, three
+    }
+    
+    public enum VideoSplitType {
+        case horizontal(VideoSplitCount)
+        case vertical(VideoSplitCount)
+        
+        public var rawValue: String {
+            switch self {
+            case .horizontal(let count):
+                return "horizontal_\(count.rawValue)"
+            case .vertical(let count):
+                return "vertical\(count.rawValue)"
+            }
+        }
     }
     
     /// 分段
@@ -35,18 +50,19 @@ public class VideoConfigOtherEffect {
 
     /// 滤镜
     // 调色
-    public var color: Bool = false {
+    public var colorFilter: CIFilter? = nil {
         didSet {
-            if color {
-                filters.append(CIImage.randomBuiltinFilter())
+            if let colorFilter {
+                //filters.append(CIImage.randomBuiltinFilter())
+                filters.append(colorFilter)
             }
         }
     }
     // 修改角度
-    public var angle: Bool = false {
+    public var angleFilter: CIFilter? = nil {
         didSet {
-            if angle {
-                filters.append(CIImage.angleFilter())
+            if let angleFilter {
+                filters.append(angleFilter)
             }
         }
     }
@@ -68,7 +84,7 @@ public class VideoConfigOtherEffect {
     public var cropX: Double = 0.0
     
     func hasEffect() -> Bool {
-        split != nil || color || angle || pipOffset > 0 || mirror || cropX > 0
+        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror || cropX > 0
     }
     
     init(_ videoConfig: VideoConfiguration?) {
@@ -95,6 +111,8 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     public var configurations: [VideoConfigurationProtocol] = []
     
     public lazy var otherEffect = VideoConfigOtherEffect(self)
+    
+    //private var renderContext = try! MTIContext(device: MTLCreateSystemDefaultDevice()!)
     
     public required override init() {
         super.init()
@@ -152,7 +170,7 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
                     
                     /// 分段
                     if let split = otherEffect.split {
-                        if let image = finalImage.splitTwoImage(frame: frame, direction: split) {
+                        if let image = finalImage.splitImageEffect(frame: frame, direction: split) {
                             finalImage = image
                         }
                     }

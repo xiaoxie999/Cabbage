@@ -65,6 +65,9 @@
 		F2116FF12CD9EA210089D623 /* 5.png in Resources */ = {isa = PBXBuildFile; fileRef = F2116FEB2CD9EA210089D623 /* 5.png */; };
 		F2116FF22CD9EA210089D623 /* 3.png in Resources */ = {isa = PBXBuildFile; fileRef = F2116FEC2CD9EA210089D623 /* 3.png */; };
 		F2116FF32CD9EA210089D623 /* 2.png in Resources */ = {isa = PBXBuildFile; fileRef = F2116FED2CD9EA210089D623 /* 2.png */; };
+		F2116FF52CDB1D8A0089D623 /* GifImageResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2116FF42CDB1D8A0089D623 /* GifImageResource.swift */; };
+		F2116FFA2CDCB4100089D623 /* AnimationToolGenerate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2116FF92CDCB4100089D623 /* AnimationToolGenerate.swift */; };
+		F2116FFD2CDCCCA20089D623 /* GifAnimationLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2116FFC2CDCCCA20089D623 /* GifAnimationLayer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -128,6 +131,9 @@
 		F2116FEB2CD9EA210089D623 /* 5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 5.png; sourceTree = "<group>"; };
 		F2116FEC2CD9EA210089D623 /* 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 3.png; sourceTree = "<group>"; };
 		F2116FED2CD9EA210089D623 /* 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 2.png; sourceTree = "<group>"; };
+		F2116FF42CDB1D8A0089D623 /* GifImageResource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GifImageResource.swift; sourceTree = "<group>"; };
+		F2116FF92CDCB4100089D623 /* AnimationToolGenerate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationToolGenerate.swift; sourceTree = "<group>"; };
+		F2116FFC2CDCCCA20089D623 /* GifAnimationLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GifAnimationLayer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +153,7 @@
 				5F4645A3210C71790013ADC3 /* Resource.swift */,
 				F2116FE42CD9E7EE0089D623 /* ResourceType.swift */,
 				5F46459F210C71790013ADC3 /* ImageResource.swift */,
+				F2116FF42CDB1D8A0089D623 /* GifImageResource.swift */,
 				5F4645A1210C71790013ADC3 /* PHAssetImageResource.swift */,
 				5F46459E210C71790013ADC3 /* PHAssetTrackResource.swift */,
 				5F27CA092270A369008E9CF3 /* PHAssetLivePhotoResource.swift */,
@@ -199,6 +206,7 @@
 		5F464586210C71480013ADC3 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				F2116FFB2CDCCC6C0089D623 /* AnimationTool */,
 				5F46458B210C71790013ADC3 /* Uitl */,
 				5F464598210C71790013ADC3 /* Resource */,
 				5F4645BD210C71910013ADC3 /* Core */,
@@ -311,6 +319,15 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		F2116FFB2CDCCC6C0089D623 /* AnimationTool */ = {
+			isa = PBXGroup;
+			children = (
+				F2116FF92CDCB4100089D623 /* AnimationToolGenerate.swift */,
+				F2116FFC2CDCCCA20089D623 /* GifAnimationLayer.swift */,
+			);
+			path = AnimationTool;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -401,6 +418,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2116FFA2CDCB4100089D623 /* AnimationToolGenerate.swift in Sources */,
 				5F5682272198223F00BBF5FE /* KeyframeVideoConfiguration.swift in Sources */,
 				5F56822B2198580E00BBF5FE /* CoreImageExtension.swift in Sources */,
 				5F4645B8210C71790013ADC3 /* TrackItem.swift in Sources */,
@@ -411,7 +429,9 @@
 				5F4645B9210C71790013ADC3 /* PHAssetImageResource.swift in Sources */,
 				F2116FE72CD9E83D0089D623 /* ImageEffect.swift in Sources */,
 				5F4645B0210C71790013ADC3 /* AudioTransition.swift in Sources */,
+				F2116FF52CDB1D8A0089D623 /* GifImageResource.swift in Sources */,
 				5F4645BC210C71790013ADC3 /* ImageGeneratorExtension.swift in Sources */,
+				F2116FFD2CDCCCA20089D623 /* GifAnimationLayer.swift in Sources */,
 				5F3BEE932163804A00881217 /* ImageOverlayItem.swift in Sources */,
 				F2116FE52CD9E7EE0089D623 /* ResourceType.swift in Sources */,
 				F2116FE32CD9E6A60089D623 /* VideoEditor.swift in Sources */,

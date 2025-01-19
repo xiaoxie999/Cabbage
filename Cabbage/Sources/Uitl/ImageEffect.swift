@@ -155,58 +155,137 @@ public extension CIImage {
         return nil
     }
     
-    /// splitTwoImage
-    func splitTwoImage(frame: CGRect, direction: VideoConfigOtherEffect.VideoSplitType = .horizontal, filters: [CIFilter?] = []) -> CIImage? {
-        var (image1, image2) = splitImage(with: direction, frame: frame)
+    /// splitImageEffect
+    func splitImageEffect(frame: CGRect, direction: VideoConfigOtherEffect.VideoSplitType, filters: [CIFilter?] = []) -> CIImage? {
+        let images = splitImage(with: direction, frame: frame)
         
         /// 添加滤镜
+        var filterOutputs: [CIImage] = images
         if let first = filters.first, let filter = first {
-            if let output = image1.apply(filter) {
-                image1 = output
-            }
-            
-            if let output = image2.apply(filter) {
-                image2 = output
+            images.forEach { image in
+                if let output = image.apply(filter) {
+                    filterOutputs.append(output)
+                }
             }
         }
         
-        // 图层叠加
-        let compFilter = CIFilter(name: "CISourceOverCompositing")
-        compFilter?.setValue(image1, forKey: kCIInputImageKey)
-        compFilter?.setValue(image2, forKey: kCIInputBackgroundImageKey)
-        return compFilter?.outputImage
+        switch direction {
+        case .horizontal(let videoSplitCount):
+            switch videoSplitCount {
+            case .two:
+                // 图层叠加
+                if images.count > 1 {
+                    let compFilter = CIFilter(name: "CISourceOverCompositing")
+                    compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+                    compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+                    return compFilter?.outputImage
+                }
+            case .three:
+                // 图层叠加
+                if images.count > 2 {
+                    let compFilter = CIFilter(name: "CISourceOverCompositing")
+                    compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+                    compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+                    let outputImage = compFilter?.outputImage
+                    compFilter?.setValue(outputImage, forKey: kCIInputBackgroundImageKey)
+                    compFilter?.setValue(images[2], forKey: kCIInputImageKey)
+                    return compFilter?.outputImage
+                }
+            }
+        case .vertical(let videoSplitCount):
+            switch videoSplitCount {
+            case .two:
+                // 图层叠加
+                if images.count > 1 {
+                let compFilter = CIFilter(name: "CISourceOverCompositing")
+                    compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+                    compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+                    return compFilter?.outputImage
+                }
+            case .three:
+                // 图层叠加
+                if images.count > 2 {
+                    let compFilter = CIFilter(name: "CISourceOverCompositing")
+                    compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+                    compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+                    let outputImage = compFilter?.outputImage
+                    compFilter?.setValue(outputImage, forKey: kCIInputBackgroundImageKey)
+                    compFilter?.setValue(images[2], forKey: kCIInputImageKey)
+                    return compFilter?.outputImage
+                }
+            }
+        }
+        return nil
     }
     
-    private func splitImage(with direction: VideoConfigOtherEffect.VideoSplitType, frame: CGRect) -> (CIImage, CIImage) {
-        var image1: CIImage
-        var image2: CIImage
+    private func splitImage(with direction: VideoConfigOtherEffect.VideoSplitType, frame: CGRect) -> [CIImage] {
+        var result: [CIImage] = []
         switch direction {
-        //case .auto:
-            //(image1, image2) = splitImage(with: Bool.random() ? .horizontal : .vertical, frame: frame)
-        case .horizontal:
-            /// 左视图
-            let leftFrame = CGRect(x: 0, y: 0, width: frame.width / 2, height: frame.height)
-            image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
-            
-            /// 右视图
-            let rightFrame = CGRect(x: frame.width / 2, y: 0, width: frame.width / 2, height: frame.height)
-            image2 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
-        case .vertical:
-            /// 上视图
-            let leftFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height / 2)
-            image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
-            
-            /// 下视图
-            let rightFrame = CGRect(x: 0, y: frame.height / 2, width: frame.width, height: frame.height / 2)
-            image2 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
+        case .horizontal(let count):
+            switch count {
+            case .two:
+                /// 左视图
+                let leftFrame = CGRect(x: 0, y: 0, width: frame.width / 2, height: frame.height)
+                let image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
+                result.append(image1)
+                
+                /// 右视图
+                let rightFrame = CGRect(x: frame.width / 2, y: 0, width: frame.width / 2, height: frame.height)
+                let image2 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
+                result.append(image2)
+            case .three:
+                /// 左视图
+                let leftFrame = CGRect(x: 0, y: 0, width: frame.width / 3, height: frame.height)
+                let image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
+                result.append(image1)
+                
+                /// 中视图
+                let middleFrame = CGRect(x: frame.width / 3, y: 0, width: frame.width / 3, height: frame.height)
+                let image2 = scaleSize(withHorizontalPadding: 0, frame: middleFrame)
+                result.append(image2)
+                
+                /// 右视图
+                let rightFrame = CGRect(x: frame.width * 2 / 3, y: 0, width: frame.width / 3, height: frame.height)
+                let image3 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
+                result.append(image3)
+            }
+        case .vertical(let count):
+            switch count {
+            case .two:
+                /// 上视图
+                let topFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height / 2)
+                let image1 = scaleSize(withHorizontalPadding: 0, frame: topFrame)
+                result.append(image1)
+                
+                /// 下视图
+                let downFrame = CGRect(x: 0, y: frame.height / 2, width: frame.width, height: frame.height / 2)
+                let image2 = scaleSize(withHorizontalPadding: 0, frame: downFrame)
+                result.append(image2)
+            case .three:
+                /// 上视图
+                let topFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height / 3)
+                let image1 = scaleSize(withHorizontalPadding: 0, frame: topFrame)
+                result.append(image1)
+                
+                /// 上视图
+                let middleFrame = CGRect(x: 0, y: frame.height / 3, width: frame.width, height: frame.height / 3)
+                let image2 = scaleSize(withHorizontalPadding: 0, frame: middleFrame)
+                result.append(image2)
+                
+                /// 下视图
+                let downFrame = CGRect(x: 0, y: frame.height * 2 / 3, width: frame.width, height: frame.height / 2)
+                let image3 = scaleSize(withHorizontalPadding: 0, frame: downFrame)
+                result.append(image3)
+            }
         }
-        return (image1, image2)
+        return result
     }
 }
 
 /// 滤镜
 /// https://developer.apple.com/library/archive/documentation/GraphicsImaging/Reference/CoreImageFilterReference/index.html
 public extension CIImage {
+    /*
     /// 调整旋转角度 Rotates the source image by the specified angle in radians.
     static func angleFilter(inputAngle: CGFloat = 0.0, random: Bool = true) -> CIFilter? {
         let filter = CIFilter(name: "CIStraightenFilter")
@@ -237,7 +316,7 @@ public extension CIImage {
         if !random {
             // 饱和度
             if let saturation {
-                filter?.setValue(NSNumber(value: saturation), forKey: kCIInputBrightnessKey)
+                filter?.setValue(NSNumber(value: saturation), forKey: kCIInputSaturationKey)
             }
             
             // 亮度
@@ -247,18 +326,18 @@ public extension CIImage {
             
             // 对比度
             if let contrast {
-                filter?.setValue(NSNumber(value: contrast), forKey: kCIInputBrightnessKey)
+                filter?.setValue(NSNumber(value: contrast), forKey: kCIInputContrastKey)
             }
         }
         else {
-            filter?.setValue(NSNumber(value: Double.random(in: 0.05...0.1)), forKey: kCIInputBrightnessKey)
+            filter?.setValue(NSNumber(value: Double.random(in: 1.05...1.1)), forKey: kCIInputBrightnessKey)
             filter?.setValue(NSNumber(value: Double.random(in: 0.05...0.1)), forKey: kCIInputContrastKey)
             filter?.setValue(NSNumber(value: Double.random(in: 0.05...0.1)), forKey: kCIInputSaturationKey)
         }
         return filter
     }
     
-    static func randomBuiltinFilter() -> CIFilter {
+    static func builtinFilters() -> [CIFilter] {
         let filters = [
             //#CIFilter(name: "CILinearToSRGBToneCurve"),  // 将颜色强度从线性伽马曲线映射到sRGB颜色空间
             //#CIFilter(name: "CISRGBToneCurveToLinear"),  // 将颜色强度从sRGB颜色空间映射到线性伽玛曲线
@@ -269,8 +348,10 @@ public extension CIImage {
             CIFilter(name: "CINoiseReduction"),         // 使用阈值来定义什么被视为噪声来减少噪声
 //            colorControlsFilter(random: true)
         ]
-        return  filters[Int.random(in: 0..<filters.count)]!
+        return filters.compactMap { $0 }
+        //return filters[Int.random(in: 0..<filters.count)]!
     }
+     */
     
     func apply(_ filter: CIFilter) -> CIImage? {
         filter.setValue(self , forKey: kCIInputImageKey)
