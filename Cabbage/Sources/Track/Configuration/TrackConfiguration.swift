@@ -84,7 +84,7 @@ public class VideoConfigOtherEffect {
     public var cropX: Double = 0.0
     
     func hasEffect() -> Bool {
-        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror || cropX > 0
+        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror //|| cropX > 0
     }
     
     init(_ videoConfig: VideoConfiguration?) {
