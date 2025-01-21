@@ -80,11 +80,14 @@ public class VideoConfigOtherEffect {
         }
     }
     
+    /// 聚焦特效(dotScreen)
+    public var dotScreen: Bool = false
+    
     /// 裁切
     public var cropX: Double = 0.0
     
     func hasEffect() -> Bool {
-        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror //|| cropX > 0
+        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror || dotScreen //|| cropX > 0
     }
     
     init(_ videoConfig: VideoConfiguration?) {
@@ -111,6 +114,8 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     public var configurations: [VideoConfigurationProtocol] = []
     
     public lazy var otherEffect = VideoConfigOtherEffect(self)
+    
+    private static let dotScreenFilter = MetalPetalDotScreenFilter()
     
     //private var renderContext = try! MTIContext(device: MTLCreateSystemDefaultDevice()!)
     
@@ -179,6 +184,13 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
                     if otherEffect.pipOffset > 0.0 {
                         if let blurImage = finalImage.gaussianBlur(frame: frame, horizontalPadding: otherEffect.pipOffset) {
                             finalImage = blurImage
+                        }
+                    }
+                    
+                    /// 聚焦特效
+                    if otherEffect.dotScreen {
+                        if let dotScreenImage = VideoConfiguration.dotScreenFilter.process(image: finalImage) {
+                            finalImage = dotScreenImage
                         }
                     }
                     

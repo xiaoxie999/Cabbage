@@ -23,12 +23,12 @@ Pod::Spec.new do |s|
     s.swift_version = "4.2"
 
     s.source = { :git => 'https://github.com/VideoFlint/Cabbage.git', :tag => s.version.to_s }
-    s.source_files = ['Cabbage/Sources/core/**/*.swift', 'Cabbage/Sources/**/*.swift']
+    s.source_files = ['Cabbage/Sources/core/**/*.swift', 'Cabbage/Sources/**/*.{swift,metal}']
     s.resource_bundles = { 'Cabbage' => 'Cabbage/Sources/Resource/*.mp4' }
 
     s.requires_arc = true
     s.frameworks = 'AVFoundation', 'CoreGraphics', 'CoreMedia', 'CoreImage', 'Accelerate'
-
-    #s.dependency 'MetalPetal/Swift'
+    
+    s.dependency 'MetalPetal/Swift'
 end
 
