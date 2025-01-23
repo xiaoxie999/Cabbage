@@ -9,7 +9,6 @@
 import AVFoundation
 import CoreImage
 import UIKit
-//import MetalPetal
 
 public struct VideoConfigurationEffectInfo {
     
@@ -48,7 +47,10 @@ public class VideoConfigOtherEffect {
     /// 分段
     public var split: VideoSplitType? = nil
 
-    /// 滤镜
+    /// LUT滤镜
+    public var lutImageURL: String? = nil
+    public var lutImage: UIImage? = nil
+    /*
     // 调色
     public var colorFilter: CIFilter? = nil {
         didSet {
@@ -58,6 +60,8 @@ public class VideoConfigOtherEffect {
             }
         }
     }
+     */
+    
     // 修改角度
     public var angleFilter: CIFilter? = nil {
         didSet {
@@ -87,7 +91,7 @@ public class VideoConfigOtherEffect {
     public var cropX: Double = 0.0
     
     func hasEffect() -> Bool {
-        split != nil || colorFilter != nil || angleFilter != nil || pipOffset > 0 || mirror || dotScreen //|| cropX > 0
+        split != nil || lutImage != nil || angleFilter != nil || pipOffset > 0 || mirror || dotScreen //|| cropX > 0
     }
     
     init(_ videoConfig: VideoConfiguration?) {
@@ -116,6 +120,7 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     public lazy var otherEffect = VideoConfigOtherEffect(self)
     
     private static let dotScreenFilter = MetalPetalDotScreenFilter()
+    private static let lutFilter = LUTFilter()
     
     //private var renderContext = try! MTIContext(device: MTLCreateSystemDefaultDevice()!)
     
@@ -164,12 +169,19 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
                         }
                     }
                     
-                    /// 添加滤镜
+                    /// 修改角度
                     if !otherEffect.filters.isEmpty {
                         otherEffect.filters.forEach { filter in
                             if let filter, let output = finalImage.apply(filter) {
                                 finalImage = output
                             }
+                        }
+                    }
+                    
+                    /// LUT滤镜
+                    if let lutImage = otherEffect.lutImage {
+                        if let image = VideoConfiguration.lutFilter.process(image: finalImage, lutImage: lutImage) {
+                            finalImage = image
                         }
                     }
                     
