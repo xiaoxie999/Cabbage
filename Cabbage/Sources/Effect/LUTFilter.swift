@@ -30,7 +30,12 @@ class LUTFilter {
         
         guard let outputImage = lookupFilter.outputImage else { return nil }
         do {
-            return try ctx.makeCIImage(from: outputImage)
+            var resultImage = try ctx.makeCIImage(from: outputImage)
+            if !resultImage.extent.equalTo(image.extent) {
+                let transform = CGAffineTransform(translationX: image.extent.origin.x, y: image.extent.origin.y)
+                resultImage = resultImage.transformed(by: transform)
+            }
+            return resultImage
         } catch {
             return nil
         }
