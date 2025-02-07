@@ -89,6 +89,24 @@ public extension CIImage {
             }
         }
         
+        // 图层叠加
+        if images.count > 2 {
+            let compFilter = CIFilter(name: "CISourceOverCompositing")
+            compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+            compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+            let outputImage = compFilter?.outputImage
+            compFilter?.setValue(outputImage, forKey: kCIInputBackgroundImageKey)
+            compFilter?.setValue(images[2], forKey: kCIInputImageKey)
+            return compFilter?.outputImage
+        }
+        else if images.count > 1 {
+            let compFilter = CIFilter(name: "CISourceOverCompositing")
+            compFilter?.setValue(images[0], forKey: kCIInputImageKey)
+            compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
+            return compFilter?.outputImage
+        }
+        
+        /*
         switch direction {
         case .horizontal(let videoSplitCount):
             switch videoSplitCount {
@@ -117,7 +135,7 @@ public extension CIImage {
             case .two:
                 // 图层叠加
                 if images.count > 1 {
-                let compFilter = CIFilter(name: "CISourceOverCompositing")
+                    let compFilter = CIFilter(name: "CISourceOverCompositing")
                     compFilter?.setValue(images[0], forKey: kCIInputImageKey)
                     compFilter?.setValue(images[1], forKey: kCIInputBackgroundImageKey)
                     return compFilter?.outputImage
@@ -135,6 +153,7 @@ public extension CIImage {
                 }
             }
         }
+         */
         return nil
     }
     
@@ -144,58 +163,36 @@ public extension CIImage {
         case .horizontal(let count):
             switch count {
             case .two:
-                /// 左视图
-                let leftFrame = CGRect(x: 0, y: 0, width: frame.width / 2, height: frame.height)
-                let image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
-                result.append(image1)
-                
-                /// 右视图
-                let rightFrame = CGRect(x: frame.width / 2, y: 0, width: frame.width / 2, height: frame.height)
-                let image2 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
-                result.append(image2)
+                /// 左右二分，取中间的区域
+                let centerFrame = CGRect(x: frame.width / 4, y: 0, width: frame.width / 2, height: frame.height)
+                let image = cropped(to: centerFrame)
+                let leftTransform = CGAffineTransform(translationX: -frame.width / 4, y: 0)
+                let rightTransform = CGAffineTransform(translationX: frame.width / 4, y: 0)
+                result = [image.transformed(by: leftTransform), image.transformed(by: rightTransform)]
             case .three:
-                /// 左视图
-                let leftFrame = CGRect(x: 0, y: 0, width: frame.width / 3, height: frame.height)
-                let image1 = scaleSize(withHorizontalPadding: 0, frame: leftFrame)
-                result.append(image1)
-                
-                /// 中视图
-                let middleFrame = CGRect(x: frame.width / 3, y: 0, width: frame.width / 3, height: frame.height)
-                let image2 = scaleSize(withHorizontalPadding: 0, frame: middleFrame)
-                result.append(image2)
-                
-                /// 右视图
-                let rightFrame = CGRect(x: frame.width * 2 / 3, y: 0, width: frame.width / 3, height: frame.height)
-                let image3 = scaleSize(withHorizontalPadding: 0, frame: rightFrame)
-                result.append(image3)
+                /// 左右三分，取中间的区域
+                let centerFrame = CGRect(x: frame.width / 3, y: 0, width: frame.width / 3, height: frame.height)
+                let image = cropped(to: centerFrame)
+                let leftTransform = CGAffineTransform(translationX: -frame.width / 3, y: 0)
+                let rightTransform = CGAffineTransform(translationX: frame.width / 3, y: 0)
+                result = [image.transformed(by: leftTransform), image, image.transformed(by: rightTransform)]
             }
         case .vertical(let count):
             switch count {
             case .two:
-                /// 上视图
-                let topFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height / 2)
-                let image1 = scaleSize(withHorizontalPadding: 0, frame: topFrame)
-                result.append(image1)
-                
-                /// 下视图
-                let downFrame = CGRect(x: 0, y: frame.height / 2, width: frame.width, height: frame.height / 2)
-                let image2 = scaleSize(withHorizontalPadding: 0, frame: downFrame)
-                result.append(image2)
+                /// 上下二分，取中间的区域
+                let centerFrame = CGRect(x: 0, y: frame.height / 4, width: frame.width, height: frame.height / 2)
+                let image = cropped(to: centerFrame)
+                let topTransform = CGAffineTransform(translationX: 0, y: -frame.height / 4)
+                let downTransform = CGAffineTransform(translationX: 0, y: frame.height / 4)
+                result = [image.transformed(by: topTransform), image.transformed(by: downTransform)]
             case .three:
-                /// 上视图
-                let topFrame = CGRect(x: 0, y: 0, width: frame.width, height: frame.height / 3)
-                let image1 = scaleSize(withHorizontalPadding: 0, frame: topFrame)
-                result.append(image1)
-                
-                /// 上视图
-                let middleFrame = CGRect(x: 0, y: frame.height / 3, width: frame.width, height: frame.height / 3)
-                let image2 = scaleSize(withHorizontalPadding: 0, frame: middleFrame)
-                result.append(image2)
-                
-                /// 下视图
-                let downFrame = CGRect(x: 0, y: frame.height * 2 / 3, width: frame.width, height: frame.height / 2)
-                let image3 = scaleSize(withHorizontalPadding: 0, frame: downFrame)
-                result.append(image3)
+                /// 上下三分，取中间的区域
+                let centerFrame = CGRect(x: 0, y: frame.height / 3, width: frame.width, height: frame.height / 3)
+                let image = cropped(to: centerFrame)
+                let topTransform = CGAffineTransform(translationX: 0, y: -frame.height / 3)
+                let bottomTransform = CGAffineTransform(translationX: 0, y: frame.height / 3)
+                result = [image.transformed(by: topTransform), image, image.transformed(by: bottomTransform)]
             }
         }
         return result
