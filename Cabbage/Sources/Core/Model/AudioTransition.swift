@@ -8,7 +8,7 @@
 
 import AVFoundation
 
-public protocol AudioTransition {
+public protocol AudioTransition: NSCopying {
     var identifier: String { get }
     var duration: CMTime { get }
     
@@ -35,7 +35,7 @@ public class LinearAudioTransition: AudioTransition {
     
     open var duration: CMTime
     
-    public init(duration: CMTime = CMTime.zero) {
+    public required init(duration: CMTime = CMTime.zero) {
         self.duration = duration
     }
     
@@ -57,6 +57,10 @@ public class LinearAudioTransition: AudioTransition {
         audioMixInputParameters.appendAudioProcessNode(node)
     }
     
+    public func copy(with zone: NSZone? = nil) -> Any {
+        let item = Swift.type(of: self).init(duration: duration)
+        return item
+    }
 }
 
 public class FadeInOutAudioTransition: AudioTransition {
@@ -67,7 +71,7 @@ public class FadeInOutAudioTransition: AudioTransition {
     
     open var duration: CMTime
     
-    public init(duration: CMTime = CMTime.zero) {
+    public required init(duration: CMTime = CMTime.zero) {
         self.duration = duration
     }
     
@@ -89,4 +93,8 @@ public class FadeInOutAudioTransition: AudioTransition {
         audioMixInputParameters.appendAudioProcessNode(node)
     }
     
+    public func copy(with zone: NSZone? = nil) -> Any {
+        let item = Swift.type(of: self).init(duration: duration)
+        return item
+    }
 }

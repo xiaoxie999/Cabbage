@@ -108,6 +108,7 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
     public enum BaseContentMode {
         case aspectFit
         case aspectFill
+        case aspectTopFill(CGFloat)
         case custom
     }
     public var contentMode: BaseContentMode = .aspectFit
@@ -224,6 +225,11 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
             break
         case .aspectFill:
             let transform = CGAffineTransform.transform(by: finalImage.extent, aspectFillRect: frame)
+            finalImage = finalImage.transformed(by: transform).cropped(to: frame)
+            break
+        case .aspectTopFill(let padding):
+            var transform = CGAffineTransform.transform(by: finalImage.extent, aspectTopFillRect: frame)
+            transform = transform.concatenating(CGAffineTransform(translationX: 0, y: padding))
             finalImage = finalImage.transformed(by: transform).cropped(to: frame)
             break
         case .custom:

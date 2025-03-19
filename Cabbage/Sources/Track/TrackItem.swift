@@ -33,9 +33,9 @@ open class TrackItem: NSObject, NSCopying, TransitionableVideoProvider, Transiti
     
     open func copy(with zone: NSZone? = nil) -> Any {
         let item = Swift.type(of: self).init(resource: resource.copy() as! BaseResource, type: type)
-        item.identifier = identifier
-        item.videoTransition = videoTransition
-        item.audioTransition = audioTransition
+        item.identifier = ProcessInfo.processInfo.globallyUniqueString
+        item.videoTransition = videoTransition?.copy() as? VideoTransition
+        item.audioTransition = audioTransition?.copy() as? AudioTransition
         item.startTime = startTime
         item.duration = duration
         item.videoConfiguration = videoConfiguration.copy() as! VideoConfiguration

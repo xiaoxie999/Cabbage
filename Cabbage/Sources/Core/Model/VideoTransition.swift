@@ -9,7 +9,7 @@
 import CoreImage
 import CoreMedia
 
-public protocol VideoTransition: AnyObject {
+public protocol VideoTransition: AnyObject, NSCopying {
     var identifier: String { get }
     var duration: CMTime { get }
     func renderImage(foregroundImage: CIImage,
@@ -25,12 +25,17 @@ open class NoneTransition: VideoTransition {
     
     open var duration: CMTime
     
-    public init(duration: CMTime = CMTime.zero) {
+    public required init(duration: CMTime = CMTime.zero) {
         self.duration = duration
     }
     
     open func renderImage(foregroundImage: CIImage, backgroundImage: CIImage, forTweenFactor tween: Float64, renderSize: CGSize) -> CIImage {
         return foregroundImage.composited(over: backgroundImage)
+    }
+    
+    open func copy(with zone: NSZone? = nil) -> Any {
+        let item = Swift.type(of: self).init(duration: duration)
+        return item
     }
 }
 
