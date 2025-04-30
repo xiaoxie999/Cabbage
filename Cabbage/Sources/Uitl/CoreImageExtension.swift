@@ -32,7 +32,7 @@ extension CIImage {
         filter?.setValue(self, forKey: kCIInputImageKey)
         
         // set the mask image
-        let bkgInput = CIImage(contentsOf: blendWithMask)?.scaleFillSize(to: extent)
+        let bkgInput = CIImage(contentsOf: blendWithMask)?.scaleTopFillSize(to: extent)
         filter?.setValue(bkgInput, forKey: kCIInputMaskImageKey)
 
         if let outputImage = filter?.outputImage {
@@ -42,12 +42,27 @@ extension CIImage {
     }
     
     /*
-    func apply(blendWithMask: CIImage, bgImage: CIImage) -> CIImage? {
-        let blendFilter = CIFilter.blendWithMask()
-        blendFilter.inputImage = self
-        blendFilter.backgroundImage = bgImage
-        blendFilter.maskImage = blendWithMask
-        return blendFilter.outputImage ?? self
+    func apply(maskImage: CIImage) -> CIImage {
+        let filter = CIFilter(name: "CIBlendWithAlphaMask")
+        filter?.setDefaults()
+        
+        // set the background image
+        filter?.setValue(self, forKey: kCIInputImageKey)
+        
+        // set the mask image
+        let bkgInput = maskImage.scaleTopFillSize(to: extent)
+        filter?.setValue(bkgInput, forKey: kCIInputMaskImageKey)
+
+        if let outputImage = filter?.outputImage {
+            return outputImage
+        }
+        return self
     }
      */
+    
+    func scaleTopFillSize(to: CGRect) -> CIImage {
+        let newFrame = extent.aspectTopFill(in: to)
+        let transform = CGAffineTransform.transform(by: extent, aspectFillRect: newFrame)
+        return transformed(by: transform).cropped(to: newFrame)
+    }
 }

@@ -12,5 +12,5 @@ public enum ResourceType: String {
     case trackItem  // 视频
     case subtitle   // 字幕
     case text       // 文字、贴图
-    case overlayVideo  // 视频浮层
+    case overlayVideo  // 视频浮层溶图模式
 }

@@ -240,6 +240,12 @@ public class VideoConfiguration: NSObject, VideoConfigurationProtocol {
             break
         }
         
+        if info.type == .overlayVideo {
+            if let imageURL = Bundle.main.url(forResource: "vf_mask_layer", withExtension: "png") {
+                finalImage = finalImage.apply(blendWithMask: imageURL)
+            }
+        }
+        
         finalImage = finalImage.apply(alpha: CGFloat(opacity))
         
         configurations.forEach { (videoConfiguration) in
